@@ -1,80 +1,6 @@
-// import 'package:dio/dio.dart';
-// import 'package:flutter_stripe/flutter_stripe.dart';
-// import 'consts.dart';
-//
-// class StripeService {
-//   StripeService._();
-//
-//   static final StripeService instance = StripeService._();
-//
-//   Future<bool> makePayment() async {
-//     try {
-//       String? paymentIntentClientSecret = await _createPaymentIntent(
-//         100,
-//         "usd",
-//       );
-//       if (paymentIntentClientSecret == null)
-//       await Stripe.instance.initPaymentSheet(
-//         paymentSheetParameters: SetupPaymentSheetParameters(
-//           paymentIntentClientSecret: paymentIntentClientSecret,
-//           merchantDisplayName: "laiba Ahmar",
-//         ),
-//       );
-//       bool paymentSuccess = await _processPayment();
-//       return paymentSuccess;
-//     } catch (e) {
-//       print(e);
-//     }
-//   }
-//
-//   Future<String?> _createPaymentIntent(int amount, String currency) async {
-//     try {
-//       final Dio dio = Dio();
-//       Map<String, dynamic> data = {
-//         "amount": _calculateAmount(
-//           amount,
-//         ),
-//         "currency": currency,
-//       };
-//       var response = await dio.post(
-//         "https://api.stripe.com/v1/payment_intents",
-//         data: data,
-//         options: Options(
-//           contentType: Headers.formUrlEncodedContentType,
-//           headers: {
-//             "Authorization": "Bearer $stripeSecretKey",
-//             "Content-Type": 'application/x-www-form-urlencoded'
-//           },
-//         ),
-//       );
-//       if (response.data != null) {
-//         return response.data["client_secret"];
-//       }
-//       return null;
-//     } catch (e) {
-//       print(e);
-//     }
-//     return null;
-//   }
-//
-//   Future<bool> _processPayment() async {
-//     try {
-//       await Stripe.instance.presentPaymentSheet();
-//       await Stripe.instance.confirmPaymentSheetPayment();
-//       return true;
-//     } catch (e) {
-//       print(e);
-//     }
-//   }
-//
-//   String _calculateAmount(int amount) {
-//     final calculatedAmount = amount * 100;
-//     return calculatedAmount.toString();
-//   }
-// }
-
 import 'package:dio/dio.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:pet/common/widgets/loaders/loaders.dart';
 import 'consts.dart'; // Assuming you have a file for your constants like stripeSecretKey
 
 class StripeService {
@@ -83,10 +9,11 @@ class StripeService {
   static final StripeService instance = StripeService._();
 
   // Function to make payment
-  Future<bool> makePayment() async {
+  Future<bool> makePayment(double price) async {
     try {
+      int amountInCents = (price * 100).toInt();
       // Create the payment intent and get the client secret
-      String? paymentIntentClientSecret = await _createPaymentIntent(100, "usd");
+      String? paymentIntentClientSecret = await _createPaymentIntent(amountInCents, "usd");
       if (paymentIntentClientSecret == null) {
         print('Failed to create payment intent.');
         return false; // Return false if client secret is null
@@ -104,6 +31,7 @@ class StripeService {
       return await _presentPaymentSheet();
     } catch (e) {
       print('Error during payment setup: $e');
+      Loaders.errorSnackBar(title: 'Make Payment');
       return false; // Return false in case of error
     }
   }
@@ -113,7 +41,7 @@ class StripeService {
     try {
       final Dio dio = Dio();
       Map<String, dynamic> data = {
-        "amount": _calculateAmount(amount), // Convert to smallest unit (e.g., cents)
+        "amount": amount, // Convert to smallest unit (e.g., cents)
         "currency": currency,
       };
 
@@ -138,6 +66,7 @@ class StripeService {
       }
     } catch (e) {
       print('Error creating payment intent: $e');
+      Loaders.errorSnackBar(title: 'Payment Intent failed');
       return null;
     }
   }
@@ -150,8 +79,9 @@ class StripeService {
       print("Payment sheet presented successfully.");
 
       // Confirm payment after the user completes the payment
-      await Stripe.instance.confirmPaymentSheetPayment();
-      print("Payment confirmed successfully.");
+      // await Stripe.instance.confirmPaymentSheetPayment();
+      // print("Payment confirmed successfully.");
+      pragma("Payment made.");
       return true;
     } catch (e) {
       // If there's an error, capture and print it
@@ -160,6 +90,7 @@ class StripeService {
       // Handle specific error cases
       if (e is StripeException) {
         print("Stripe error: ${e.error.localizedMessage}");
+        Loaders.errorSnackBar(title: "Payment sheet!");
       }
       return false;
     }
