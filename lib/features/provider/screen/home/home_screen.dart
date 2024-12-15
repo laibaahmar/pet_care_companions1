@@ -20,7 +20,7 @@ class ProviderHomeScreen extends StatelessWidget {
     final controller1 = Get.put(ProviderController());
 
     return Scaffold(
-      // backgroundColor: logoPurple,
+      backgroundColor: logoPurple,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -39,11 +39,10 @@ class ProviderHomeScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   ServiceOverview(providerId: FirebaseAuth.instance.currentUser!.uid,),
                   const SizedBox(height: 20),
-                   Padding(
-                     padding: const EdgeInsets.all(16.0),
-                     child: AppointmentsOverview(),
-                   ),
+                  const AppointmentSection(),
                   const SizedBox(height: 20),
+                  const AppointmentsOverview(),
+                  const SizedBox(height: 20,),
                   const EarningsOverview(),
                   const SizedBox(height: 20),
                   const ReviewsSection(),

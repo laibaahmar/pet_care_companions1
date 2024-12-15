@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pet/features/home/appointment/provider%20appointment/providercancel.dart';
 import 'package:pet/features/home/appointment/provider%20appointment/providermodify.dart';
 import '../../../../constants/constants.dart';
+import '../../../../constants/sizes.dart';
 import 'cardprovider.dart'; // Import the CardAppointmentProvider
 
 class UpcomingProviderScreen extends StatelessWidget {
@@ -125,84 +126,87 @@ class _AppointmentsOverviewState extends State<AppointmentsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: backgrndclrpurple,
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Upcoming Appointments
-          GestureDetector(
-            onTap: () {
-              navigateTo(context, UpcomingProviderScreen());
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Upcoming Appointments",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Icon(Icons.arrow_forward),
-              ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Sizes.defaultPadding),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: backgrndclrpurple,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-          ),
-          const Divider(),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Upcoming Appointments
+            GestureDetector(
+              onTap: () {
+                navigateTo(context, UpcomingProviderScreen());
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Upcoming Appointments",
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward),
+                ],
+              ),
+            ),
+            const Divider(),
 
-          // Completed Appointments
-          GestureDetector(
-            onTap: () {
-              navigateTo(context, const CompletedAppointmentsScreen());
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Completed Appointments",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
+            // Completed Appointments
+            GestureDetector(
+              onTap: () {
+                navigateTo(context, const CompletedAppointmentsScreen());
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Completed Appointments",
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Icon(Icons.arrow_forward),
-              ],
+                  const Icon(Icons.arrow_forward),
+                ],
+              ),
             ),
-          ),
-          const Divider(),
+            const Divider(),
 
-          // Cancelled Appointments
-          GestureDetector(
-            onTap: () {
-              navigateTo(context, const CancelledAppointmentsScreen());
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Cancelled Appointments",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
+            // Cancelled Appointments
+            GestureDetector(
+              onTap: () {
+                navigateTo(context, const CancelledAppointmentsScreen());
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Cancelled Appointments",
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const Icon(Icons.arrow_forward),
-              ],
+                  const Icon(Icons.arrow_forward),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

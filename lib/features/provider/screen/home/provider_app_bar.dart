@@ -15,12 +15,14 @@ class ProviderAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(UserController());
     return AppBar(
+      toolbarHeight: 70,
       // shape: RoundedRectangleBorder(
       //   borderRadius: BorderRadius.vertical(
       //     bottom: Radius.circular(20),
       //   ),
       // ),
       backgroundColor: logoPurple,
+      foregroundColor: Colors.white,
       automaticallyImplyLeading: false,
       title: Padding(
         padding: EdgeInsets.only(left: Sizes.s),
@@ -32,7 +34,7 @@ class ProviderAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Row(
                   children: [
-                    Text("Dashboard", style: Theme.of(context).textTheme.headlineSmall),
+                    Text("Dashboard", style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, color: Colors.white),),
                   ],
                 ),
                 // Obx(() {
@@ -48,7 +50,7 @@ class ProviderAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Stack(
                   children: [
-                    IconButton(onPressed: () {}, icon: const Icon(Iconsax.message), color: textColor,),
+                    IconButton(onPressed: () {}, icon: const Icon(Iconsax.message), color: Colors.white,),
                     Positioned(
                       right: 0,
                       child: Container(
@@ -67,7 +69,7 @@ class ProviderAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 Stack(
                   children: [
-                    IconButton(onPressed: () {}, icon: const Icon(Iconsax.notification), color: textColor,),
+                    IconButton(onPressed: () {}, icon: const Icon(Iconsax.notification), color: Colors.white,),
                     Positioned(
                       right: 5,
                       child: Container(
