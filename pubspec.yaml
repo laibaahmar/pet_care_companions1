@@ -22,7 +22,7 @@ dependencies:
 
   #Utility Packages
   http: ^1.2.2
-  intl: ^0.19.0
+  intl: ^0.20.1
   logger: ^2.4.0
   url_launcher: ^6.3.0
   lottie: ^3.1.2
@@ -38,7 +38,6 @@ dependencies:
   cloud_firestore: ^5.4.4
   google_sign_in: ^6.2.2
   firebase_storage: ^12.3.1
-  file_picker: ^8.1.4
   flutter_stripe: ^11.3.0
   dio: ^5.7.0
 

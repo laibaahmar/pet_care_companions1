@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,7 @@ import '../../../../controller/provider_controller.dart';
 
 class AddServicePage extends StatelessWidget {
   final ProviderController controller = Get.find<ProviderController>(); // Use existing instance
-  final PdfController pdfController = Get.put(PdfController());
+  final ImageController imageController = Get.put(ImageController());
   final ServiceController controller1 = Get.put(ServiceController());
 
   AddServicePage({super.key}) {
@@ -134,45 +135,53 @@ class AddServicePage extends StatelessWidget {
               Center(
                 child: GestureDetector(
                   onTap: () async {
-                    await pdfController.pickPdfFile();
+                    await imageController.pickImageFile(); // Trigger image picker
                   },
-                  child: Container(
-                    width: 300,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey, width: 2),
-                      color: Colors.grey[100],
-                    ),
-                    child: Obx(() => Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.picture_as_pdf,
-                          size: 50,
-                          color: logoPurple,
+                  child: Obx(() {
+                    if (imageController.selectedImagePath.value.isNotEmpty) {
+                      // Show the selected image
+                      return Image.file(
+                        File(imageController.selectedImagePath.value),
+                        width: 300,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      );
+                    } else {
+                      // Placeholder UI
+                      return Container(
+                        width: 300,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey, width: 2),
+                          color: Colors.grey[100],
                         ),
-                        SizedBox(height: 10),
-                        Text(
-                          pdfController.fileName.value.isEmpty
-                              ? 'Tap to upload PDF'
-                              : pdfController.fileName.value,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: pdfController.fileName.value.isEmpty
-                                ? Colors.grey
-                                : Colors.black,
-                            fontWeight: pdfController.fileName.value.isEmpty
-                                ? FontWeight.normal
-                                : FontWeight.bold,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.image,
+                              size: 50,
+                              color: logoPurple,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Tap to upload an image',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    )),
-                  ),
+                      );
+                    }
+                  }),
                 ),
               ),
+
+
               SizedBox(height: Sizes.s),
 
               Obx(() => SwitchListTile(
@@ -187,25 +196,27 @@ class AddServicePage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () async {
                   if (controller.formKey.currentState!.validate()) {
-                    // Upload PDF first if selected
-                    String? certificateUrl = pdfController.fileName.value.isNotEmpty
-                        ? await pdfController.uploadCertificateToFirebase(
-                      context,
-                      pdfController.file!.path!,
-                      pdfController.fileName.value, // PDF path or file
-                    )
+                    // Ensure image is uploaded
+                    String? imageUrl = imageController.uploadUrl.value.isNotEmpty
+                        ? imageController.uploadUrl.value
                         : null;
 
-                    // Proceed to add service with certificate URL (if available)
+                    if (imageUrl == null) {
+                      Get.snackbar("Error", "Please upload an image before proceeding.");
+                      return;
+                    }
+
+                    // Proceed to add service with the image URL
                     controller1.addService(
                       context,
                       providerId: FirebaseAuth.instance.currentUser?.uid,
-                      certificateUrl: certificateUrl,
+                      imageUrl: imageUrl, // Pass the uploaded image URL
                     );
                   }
                 },
                 child: const Text('Add Service'),
               ),
+
               SizedBox(height: Sizes.s),
             ],
           ),

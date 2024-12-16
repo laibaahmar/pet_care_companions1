@@ -70,7 +70,7 @@ class ServiceController extends GetxController {
   }
 
   // Add a new service to Firestore
-  Future<void> addService(BuildContext context, {required providerId, String? certificateUrl,}) async {
+  Future<void> addService(BuildContext context, {required providerId, String? imageUrl,}) async {
     UserModel user = await fetchUser(FirebaseAuth.instance.currentUser!.uid);
     print('Provider ID: ${FirebaseAuth.instance.currentUser?.uid}');
     String serviceId = DateTime
@@ -87,7 +87,7 @@ class ServiceController extends GetxController {
       durationInMinutes: int.parse(durationController.text),
       isAvailable: isAvailable.value,
       category: selectedSubCategory.value,
-      certificateUrl: certificateUrl,
+      certificateUrl: imageUrl,
       user: user,
     );
 
@@ -163,7 +163,7 @@ class ServiceController extends GetxController {
     }
   }
 
-  Future<void> updateService(String serviceId, {required String providerId, String? certificateUrl}) async {
+  Future<void> updateService(String serviceId, {required String providerId, String? imageUrl}) async {
     UserModel user = await fetchUser(FirebaseAuth.instance.currentUser!.uid);
     final updatedService = ServiceModel(
       serviceId: serviceId,
@@ -173,6 +173,7 @@ class ServiceController extends GetxController {
       durationInMinutes: int.parse(durationController.text),
       isAvailable: isAvailable.value,
       category: selectedCategory.value, // Using selected category
+      certificateUrl: imageUrl,
       user: user,
     );
 

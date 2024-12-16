@@ -21,6 +21,7 @@ final int duration;
 final String userName;
 final String userEmail;
 final String profileImageUrl; // URL or path for the profile image
+final String? certificateUrl;
 
 BookingScreen({
   required this.name,
@@ -30,6 +31,7 @@ BookingScreen({
   required this.userName,
   required this.userEmail,
   required this.profileImageUrl, // Add profile image URL to the constructor
+  required this.certificateUrl,
 });
 
 final ServiceController controller = Get.put(ServiceController());
@@ -38,6 +40,9 @@ final ServiceController controller = Get.put(ServiceController());
 Widget build(BuildContext context) {
   final networkImage = profileImageUrl;
   final image = networkImage.isNotEmpty ? networkImage : avatar;
+  final networkimage2 = certificateUrl;
+  final image2 = networkimage2;
+  
   return Scaffold(
     appBar: AppBar(
       title: Text("Service Provider Details", style: TextStyle(color: textColor, fontWeight: FontWeight.w500),),
@@ -105,7 +110,7 @@ Widget build(BuildContext context) {
                                   ),
                                   TextSpan(
                                     text: "$userEmail", // Using phoneNo here instead of email
-                                    style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: textColor),
+                                    style: TextStyle(fontWeight: FontWeight.normal, fontSize: 13, color: textColor),
                                   ),
                                 ],
                               ),
@@ -195,6 +200,35 @@ Widget build(BuildContext context) {
                             ],
                           ),
                         ),
+                        SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width, // Same width as the first card
+                child: Card(
+                  elevation: 5,
+                  margin: EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Certificate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),),
+                        SizedBox(height: 8),
+                        image2 != null && image2.isNotEmpty
+                            ? Image.network(image2) // If the image URL exists, display the image
+                            : Center(                 // If no image, display a placeholder text
+                          child: Text(
+                            'No certificate available',
+                            style: TextStyle(fontSize: 16, color: Colors.grey), // Style the text as needed
+                          ),
+                        )
                       ],
                     ),
                   ),

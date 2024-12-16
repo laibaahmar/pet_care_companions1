@@ -52,6 +52,7 @@ class _ServiceProvidersSectionState extends State<ServiceProvidersSection> {
                       userName: service.user.fullName,
                       userEmail: service.user.email,
                       profileImageUrl: service.user.profilePicture,
+                      certificateUrl: service.certificateUrl,
                     ),
                   ),
                 );
