@@ -1,17 +1,11 @@
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pet/common/widgets/circular_image/circular_image.dart';
 import 'package:pet/constants/colors.dart';
 import 'package:pet/constants/constants.dart';
-import 'package:pet/constants/text.dart';
 import 'package:pet/features/provider/controller/service_controller.dart';
 import 'package:get/get.dart';
-
 import '../../../constants/images.dart';
 import 'appointment_service.dart';
-import '../home.dart';
 
 class BookingScreen extends StatelessWidget {
 final String name;

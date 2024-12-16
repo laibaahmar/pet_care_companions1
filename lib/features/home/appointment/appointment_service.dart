@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:pet/constants/colors.dart';
 import 'package:pet/constants/constants.dart';
 import 'package:pet/features/home/home.dart';
-
+import 'package:get/get.dart';
 import '../../payment/service.dart';
+import '../../pets/controller/pet_controller.dart';
+import '../../pets/model/pet_model.dart';
 
 class AppointmentSelectionScreen extends StatefulWidget {
   final String userName;
@@ -33,6 +35,9 @@ class _AppointmentSelectionScreenState
   String selectedSlot = '';
   String address = ''; // Variable to store the entered address
   String selectedPaymentMethod = ''; // To store the selected payment method
+  String? selectedPetId; // Store the selected pet's ID
+  Pet? selectedPet; // Store the selected pet object
+
   List<String> timeSlots = [
     '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
     '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
@@ -40,6 +45,16 @@ class _AppointmentSelectionScreenState
     '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM',
     '5:00 PM'
   ];
+
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  final PetController petController = Get.put(PetController());
+
+  // Fetch the pets for the current user
+  @override
+  void initState() {
+    super.initState();
+    petController.fetchPets(userId ?? "");
+  }
 
   // Function to select the date
   Future<void> _selectDate(BuildContext context) async {
@@ -67,15 +82,8 @@ class _AppointmentSelectionScreenState
     return selectedSlot.isNotEmpty &&
         selectedDate != null &&
         address.isNotEmpty &&
-        selectedPaymentMethod.isNotEmpty;
-  }
-
-  // Navigate to home screen after successful booking
-  void _navigateToHome() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => Home()),
-    );
+        selectedPaymentMethod.isNotEmpty &&
+        selectedPetId != null;
   }
 
   // Function to handle the booking flow with payment
@@ -101,12 +109,14 @@ class _AppointmentSelectionScreenState
               'userEmail': currentUserEmail,
               'address': address,
               'paymentMethod': selectedPaymentMethod,
+              'petId': selectedPetId, // Include the selected pet
+              'petName': selectedPet?.name, // Include the selected pet's name
             });
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Appointment booked successfully!')),
             );
-            _navigateToHome();  // Navigate to home after booking
+            Get.back();  // Navigate to home after booking
           } else {
             // Payment failed, show error message
             ScaffoldMessenger.of(context).showSnackBar(
@@ -134,13 +144,15 @@ class _AppointmentSelectionScreenState
             'userEmail': currentUserEmail,
             'address': address,
             'paymentMethod': selectedPaymentMethod,
+            'petId': selectedPetId, // Include the selected pet
+            'petName': selectedPet?.name, // Include the selected pet's name
           });
 
           print("Appointment successfully booked!");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Appointment booked successfully!')),
           );
-          _navigateToHome();  // Navigate to home after booking
+          Get.back();  // Navigate to home after booking
         } catch (e) {
           print("Error booking appointment: $e");
           ScaffoldMessenger.of(context).showSnackBar(
@@ -151,7 +163,7 @@ class _AppointmentSelectionScreenState
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select a valid date, time, address, and payment method'),
+          content: Text('Please select a valid date, time, address, pet, and payment method'),
         ),
       );
     }
@@ -225,6 +237,39 @@ class _AppointmentSelectionScreenState
                   );
                 },
               ),
+              SizedBox(height: 20),
+
+              // Select Pet Dropdown
+              Text(
+                "Select Pet:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Obx(() {
+                // Fetch pets from the PetController
+                var pets = petController.pets;
+
+                if (pets.isEmpty) {
+                  return Center(child: Text("No pets found"));
+                }
+
+                return DropdownButton<String>(
+                  hint: Text("Select your pet"),
+                  value: selectedPetId,
+                  onChanged: (String? newPetId) {
+                    setState(() {
+                      selectedPetId = newPetId;
+                      selectedPet = pets.firstWhere((pet) => pet.id == newPetId);
+                    });
+                  },
+                  items: pets.map<DropdownMenuItem<String>>((Pet pet) {
+                    return DropdownMenuItem<String>(
+                      value: pet.id,
+                      child: Text(pet.name),
+                    );
+                  }).toList(),
+                );
+              }),
               SizedBox(height: 20),
 
               // Address Input Field
