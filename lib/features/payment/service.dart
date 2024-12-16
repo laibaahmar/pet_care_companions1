@@ -1,48 +1,91 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:pet/common/widgets/loaders/loaders.dart';
-import 'consts.dart'; // Assuming you have a file for your constants like stripeSecretKey
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'consts.dart';
 
 class StripeService {
   StripeService._();
 
   static final StripeService instance = StripeService._();
 
-  // Function to make payment
-  Future<bool> makePayment(double price) async {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<String?> createConnectedAccount(String email) async {
     try {
-      int amountInCents = (price * 100).toInt();
-      // Create the payment intent and get the client secret
-      String? paymentIntentClientSecret = await _createPaymentIntent(amountInCents, "usd");
-      if (paymentIntentClientSecret == null) {
-        print('Failed to create payment intent.');
-        return false; // Return false if client secret is null
+      String? existingAccountId = await _getAccountIdFromDatabase(email);
+      if (existingAccountId != null) {
+        return existingAccountId;
       }
 
-      // Initialize the payment sheet with the payment intent client secret
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: paymentIntentClientSecret,
-          merchantDisplayName: "Laiba Ahmar", // You can replace this with a dynamic name
+      final Dio dio = Dio();
+      Map<String, dynamic> data = {
+        "type": "standard",
+        "email": email,
+      };
+
+      var response = await dio.post(
+        "https://api.stripe.com/v1/accounts",
+        data: data,
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+          headers: {
+            "Authorization": "Bearer $stripeSecretKey",
+            "Content-Type": 'application/x-www-form-urlencoded'
+          },
         ),
       );
 
-      // Present the payment sheet to the user
-      return await _presentPaymentSheet();
+      if (response.data != null && response.data["id"] != null) {
+        String accountId = response.data["id"];
+        await _storeAccountIdInDatabase(accountId, email);
+        return accountId;
+      }
+      return null;
     } catch (e) {
-      print('Error during payment setup: $e');
-      Loaders.errorSnackBar(title: 'Make Payment');
-      return false; // Return false in case of error
+      print('Error creating connected account: $e');
+      Loaders.errorSnackBar(title: 'Connected Account Creation Failed');
+      return null;
     }
   }
 
-  // Function to create payment intent using the Stripe API
-  Future<String?> _createPaymentIntent(int amount, String currency) async {
+  Future<bool> makePayment(String email, double price) async {
+    try {
+      String? accountId = await createConnectedAccount(email);
+      if (accountId == null) {
+        return false;
+      }
+
+      int amountInCents = (price * 100).toInt();
+      String? paymentIntentClientSecret = await _createPaymentIntent(amountInCents, "usd", accountId);
+      if (paymentIntentClientSecret == null) {
+        return false;
+      }
+
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: paymentIntentClientSecret,
+          merchantDisplayName: "Laiba Ahmar",
+        ),
+      );
+
+      bool paymentSuccess = await _presentPaymentSheet();
+      return paymentSuccess;
+    } catch (e) {
+      print('Error during payment setup: $e');
+      Loaders.errorSnackBar(title: 'Make Payment');
+      return false;
+    }
+  }
+
+  // Create a payment intent with the destination for the provider
+  Future<String?> _createPaymentIntent(int amount, String currency, String destinationAccountId) async {
     try {
       final Dio dio = Dio();
       Map<String, dynamic> data = {
-        "amount": amount, // Convert to smallest unit (e.g., cents)
+        "amount": amount,
         "currency": currency,
+        "transfer_data[destination]": destinationAccountId, // Send funds directly to the provider
       };
 
       var response = await dio.post(
@@ -51,19 +94,16 @@ class StripeService {
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
           headers: {
-            "Authorization": "Bearer $stripeSecretKey", // Replace with your Stripe Secret Key
+            "Authorization": "Bearer $stripeSecretKey",
             "Content-Type": 'application/x-www-form-urlencoded'
           },
         ),
       );
 
-      // Check the response and return the client secret if successful
       if (response.data != null && response.data["client_secret"] != null) {
         return response.data["client_secret"];
-      } else {
-        print('Payment intent creation failed: No client secret received.');
-        return null;
       }
+      return null;
     } catch (e) {
       print('Error creating payment intent: $e');
       Loaders.errorSnackBar(title: 'Payment Intent failed');
@@ -71,35 +111,40 @@ class StripeService {
     }
   }
 
-  // Function to process the payment by presenting the payment sheet
+  // Present the payment sheet to the user
   Future<bool> _presentPaymentSheet() async {
     try {
-      print("Presenting payment sheet...");
       await Stripe.instance.presentPaymentSheet();
-      print("Payment sheet presented successfully.");
-
-      // Confirm payment after the user completes the payment
-      // await Stripe.instance.confirmPaymentSheetPayment();
-      // print("Payment confirmed successfully.");
-      pragma("Payment made.");
       return true;
     } catch (e) {
-      // If there's an error, capture and print it
       print("Error during payment processing: $e");
-
-      // Handle specific error cases
       if (e is StripeException) {
-        print("Stripe error: ${e.error.localizedMessage}");
-        Loaders.errorSnackBar(title: "Payment sheet!");
+        Loaders.errorSnackBar(title: "Payment Sheet Error");
       }
       return false;
     }
   }
 
-  // Helper function to calculate the amount in the smallest currency unit (e.g., cents)
-  String _calculateAmount(int amount) {
-    // Stripe expects the amount in the smallest unit (e.g., cents for USD)
-    final calculatedAmount = amount * 100;
-    return calculatedAmount.toString();
+  Future<String?> _getAccountIdFromDatabase(String email) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('stripe_accounts').doc(email).get();
+      if (doc.exists) {
+        return doc['account_id'];
+      }
+    } catch (e) {
+      print('Error fetching account ID: $e');
+    }
+  }
+
+  Future<void> _storeAccountIdInDatabase(String accountId, String email) async {
+    try {
+      await _firestore.collection('stripe_accounts').doc(email).set({
+        'email': email,
+        'account_id': accountId,
+      });
+    } catch (e) {
+      print('Error storing account ID: $e');
+    }
   }
 }
+

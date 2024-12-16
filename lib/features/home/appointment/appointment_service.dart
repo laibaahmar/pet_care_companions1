@@ -84,7 +84,7 @@ class _AppointmentSelectionScreenState
       if (selectedPaymentMethod == "Credit/Debit Card") {
         try {
           // Await the payment process and check if it's successful
-          bool paymentSuccess = await StripeService.instance.makePayment(widget.price);
+          bool paymentSuccess = await StripeService.instance.makePayment(widget.userEmail, widget.price);
 
           if (paymentSuccess) {
             // Proceed with booking the appointment only if the payment was successful
